@@ -1,7 +1,8 @@
 # 🌦️ WeatherWise App
 
 Welcome to the **WeatherWise**! WeatherWise is a Python application that provides weather forecast and clothing advice by AI. It obtains weather information, generates graphes and advises clothing by asking questions.
-<img width="764" alt="Screenshot 2025-05-28 at 11 45 26 pm" src="https://github.com/user-attachments/assets/230a1694-c661-4e2e-b226-bb389ab60494" />
+<img width="771" alt="Screenshot 2025-05-28 at 11 53 20 pm" src="https://github.com/user-attachments/assets/ca6ee5d1-dae8-4627-aad4-108d599fb11d" />
+
 
 
 ---
