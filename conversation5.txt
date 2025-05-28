@@ -1,0 +1,284 @@
+
+----------------------------------
+Tool: ChatGPT
+Date: 2025-05-27
+Subject: Having advise to improve entire code
+----------------------------------
+Me:
+I code for the app.
+Do you have any ideas to improve this?
+
+
+!pip install fetch-my-weather
+!pip install hands-on-ai
+
+import os
+
+os.environ['HANDS_ON_AI_SERVER'] = 'http://ollama.serveur.au'
+os.environ['HANDS_ON_AI_MODEL'] = 'granite3.2'
+os.environ['HANDS_ON_AI_API_KEY'] = input('Enter your API key: ')
+
+# Setup and Configuation
+import requests
+import matplotlib.pyplot as plt
+import pyinputplus as pyip
+from fetch_my_weather import get_weather
+from hands_on_ai.chat import get_response
+import re
+
+
+# Weather Data Functions
+# get_weather_data()
+def get_weather_data(location: str, forecase_days: int = 3) -> dict:
+  if forecast_days < 1 or forecast_days > 5:
+    return {"error": "forecast_days must be between 1 and 5"}
+
+  # Convert forecast_days to view_options (0 = 1 day, 1 = 2 days, ..., 4 = 5 days)
+  view_option = str(forecast_days - 1)
+
+  # Fetch raw text weather data
+  raw_text = fetch_my_weather.get_weather(
+    location=location,
+    view_option=view_option,
+    lang="en"
+  )
+
+  if isinstance(raw_text, str) and raw_text.startwith("Error:"):
+    return {"error": raw_text}
+
+  # Regex to extract high/low temps and precipitation
+  temp_rain_pattern = r'([+\-]?\d+°C)\s*/\s*([+\-]?\d+°C).*?rain:\s*([\d.]+)mm'
+  matches = re.findall(temp_rain_pattern, raw_text)
+
+  # Regex to extract weather conditions (e.g., Sunny, Cloudy, Rain)
+  condition_pattern = r'\n\s*[☀️🌤️🌧️🌩️❄️☁️⛅️]*\s*([A-Z][a-z]+)'
+  conditions = re.findall(condition_pattern, raw_text)
+
+  forecast = []
+  for i in range(min(forecast_days, len(matches))):
+    high, low, rain = matches[i]
+    condition = conditions[i] if i < len(conditions) else "Unknown"
+    forecast.append({
+      "day": i + 1,
+      "condition": condition,
+      "high_temp": high,
+      "low_temp": low,
+      "precipitation_mm": float(rain)
+      })
+
+    return {
+      "location": location,
+      "forecast_days": len(forecast),
+      "forecast": forecast
+    }
+
+  # Connection error
+  except ConnectionError:
+    print("Network error. Please check your connection and try again.")
+    return None
+
+  # Value error
+  except ValueError as ve:
+    print(f"Invalid input value: {ve}")
+    return None
+
+  # Unexpected error
+  except Exception as e:
+    print(f"An unexpected error occurred: {e}")
+    return None
+
+# Visualisation Functions
+# preprocess_forecast_data()
+def preprocess_forecast_data(raw_data):
+  processed = []
+  for entry in raw_data:
+    high = int(entry['high_temp'].replace("°C", "").replace("+", ""))
+    low = int(entry['low_temp'].replace("°C", "").replace("+", ""))
+    processed.append({
+      "day": entry['day'],
+      "high_temp": high,
+      "low_temp": low,
+      "precipitation_mm": entry['precipitation_mm']
+    })
+  return processed
+
+# create_visualisation()
+def create_visualisation(weather_data, output_type='display'):
+  days = [entry['day'] for entry in weather_data]
+  high_temps = [entry['high_temp'] for entry in weather_data]
+  low_temps = [entry['low_temp'] for entry in weather_data]
+  precipitation = [entry['precipitation_mm'] for entry in weather_data]
+
+  fig, ax1 = plt.subplots(figsize=(10, 6))
+
+  # Plot temperature lines on left y-axis
+  ax1.plot(days, high_temps, color='red', marker='o', label='High Temp (°C)')
+  ax1.plot(days, low_temps, color='blue', marker='o', label='Low Temp (°C)')
+  ax1.set_xlabel('Day')
+  ax1.set_ylabel('Temperature (°C)')
+  ax1.legend(loc='upper left')
+
+  # Create second y-axis for precipitation bars
+  ax2 = ax1.twinx()
+  ax2.bar(days, precipitation, alpha=0.3, color='blue', label='Precipitation (mm)')
+  ax2.set_ylabel('Precipitation (mm)')
+  ax2.legend(loc='upper right')
+
+  plt.title('Weather Forecast: Temperature and Precipitation')
+  plt.tight_layout()
+
+  if output_type == 'figure':
+    return fig
+  else:
+    plt.show()
+    plt.close()
+
+# Main function
+def main():
+  print("Hi I'm Weatherwise App!")
+  print("I can help you check the weather forecast.")
+
+  while True:
+    try:
+      location = input("Which city are you interested in? (type 'exit' to quit)\n")
+      if location.lower() == 'exit':
+        print("Goodbye! Have a nice day!")
+        break
+
+      if not location:
+        print("Please enter a city name.")
+        continue
+
+      weather_data = get_weather_data(location)
+      if "error" not in weather_data:
+        forecast_raw = weather_data['forecast']
+        forecast_processed = preprocess_forecast_data(forecast_raw)
+
+        print("\nWeather Forecast:")
+        for raw, proc in zip(forecast_raw, forecast_processed):
+          print(f"Day {proc['day']}: {raw['condition']}, "
+          f"High: {proc['high_temp']}°C, Low: {proc['low_temp']}°C, "
+          f"Rain: {proc['precipitation_mm']} mm")
+        create_visualisation(forecast_processed)
+      else:
+        print(f"Sorry, I couldn't find weather data for '{location}'. Please try another city.")
+        continue
+
+    except ConnectionError:
+      print("It looks like there's a problem with your internet connection. Please check and try again.")
+    except Exception as e:
+      print(f"Oops! Something went wrong: {e}")
+      print("Please try again or contact support if the issue persists.")
+
+# User Interface
+
+
+# Main Application Logic
+if __name__ == '__main__':
+    main()
+
+-------------
+
+AI:
+You're doing a great job building this app! Here are some specific suggestions to improve and polish your weather app:
+
+✅ General Improvements
+1. Fix Typos and Bugs
+- def get_weather_data(location: str, forecase_days: int = 3) → forecast_days is misspelled.
+- Inside get_weather_data(), your return is inside the loop. Move it outside the for loop.
+# Replace this:
+for i in range(...):
+    ...
+    return {...}  # This ends the loop too early
+
+# With this:
+for i in range(...):
+    ...
+return {...}  # Properly after the loop
+
+2. Fix startwith Typo
+if isinstance(raw_text, str) and raw_text.startwith("Error:"):
+# ➤ should be:
+if isinstance(raw_text, str) and raw_text.startswith("Error:"):
+
+
+📊 Data Handling & Visualisation
+3. Show Weather Condition in Graph
+You could annotate each data point with its weather condition (like “Sunny”, “Rain”) for better user experience.
+
+4. Make Graph Titles Dynamic
+plt.title(f'Weather Forecast for {weather_data["location"]}: Temperature and Precipitation')
+
+5. Save the Graph Option
+Add output_type='save' to export the graph as a PNG:
+elif output_type == 'save':
+    plt.savefig(f"{weather_data['location']}_forecast.png")
+    print("Graph saved!")
+
+
+🧼 Code Structure & Cleanliness
+6. Split Code into Modules
+Organize your code like this for clarity:
+
+7. Use Type Hints in All Functions
+For example:
+def preprocess_forecast_data(raw_data: list[dict]) -> list[dict]:
+
+
+💡 Optional Features to Consider
+8. Ask User How Many Days They Want
+Add this in main():
+forecast_days = pyip.inputInt(prompt="How many days? (1-5)\n", min=1, max=5)
+weather_data = get_weather_data(location, forecast_days)
+
+9. Color Coding Conditions
+Different weather conditions could color the bars differently (e.g., gray for cloudy, blue for rain).
+
+If you'd like, I can refactor the whole code into modular Python files and help you make it cleaner and easier to test. Just let me know 💪🌦️
+
+-------------
+
+Me:
+3. Show Weather Condition in Graph
+You could annotate each data point with its weather condition (like “Sunny”, “Rain”) for better user experience.
+
+How do you show it in graph?
+
+-------------
+
+Great question! 😊
+To show weather conditions (like "Sunny", "Rain") on the graph, you can use annotations in matplotlib. This will label each data point with its condition to make the graph more informative and visually helpful.
+Here’s how you can do it:
+
+✅ In your create_visualisation() function:
+After you’ve defined the temperature and precipitation plots, add this loop to annotate conditions:
+# Assuming each entry in weather_data includes a "condition" field
+
+for i, entry in enumerate(weather_data):
+    condition = entry.get('condition', '')  # Get the condition text, like "Sunny"
+    x = entry['day']
+    y = entry['high_temp'] + 1  # Slightly above the high temp point
+
+    # Annotate the condition text on the plot
+    ax1.annotate(
+        condition,
+        xy=(x, y),
+        xytext=(0, 5),  # Move 5 points upward
+        textcoords='offset points',
+        ha='center',
+        fontsize=8,
+        color='darkgreen'
+    )
+
+
+🔍 Example Output
+If you have data like:
+{"day": 1, "high_temp": 25, "low_temp": 15, "condition": "Sunny"}
+You will see "Sunny" displayed just above the high temp point on the graph.
+
+📌 Tips:
+You can customize the font, color, and position for readability.
+If the text overlaps or becomes cluttered, consider showing it only on certain days (like every other day).
+
+Would you like me to help integrate this directly into your existing function? I can show the full updated code for create_visualisation() if you'd like! 🌤️📊
+

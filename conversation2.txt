@@ -1,0 +1,123 @@
+
+----------------------------------
+Tool: ChatGPT
+Date: 2025-05-27
+Subject: Error handling
+----------------------------------
+Me:
+Here's a coding that an app asks location and provides weather information:
+location = input("Hi I'm Weatherwise App!\nI can help you check the weather forecast.\nWhich city are you interested in? (type 'exit' to quit)\n")
+weather_data = get_weather_data(location)
+create_temperature_visualisation(weather_data)
+create_precipitation_visualisation(weather_data)
+
+I would like to make some error handling
+- When weather data is not found
+- When the user wants to exit
+- Any other error
+If there are any others I should add, can you advise me?
+
+-------------
+
+AI:
+Here's a clean, the improved app with proper error handling and some suggestions for extra robustness.
+
+✅ Revised Code with Error Handling
+def main():
+    print("Hi I'm Weatherwise App!")
+    print("I can help you check the weather forecast.")
+
+    while True:
+        try:
+            location = input("Which city are you interested in? (type 'exit' to quit)\n").strip()
+            if location.lower() == 'exit':
+                print("Goodbye! Stay weather-wise! ☀️")
+                break
+
+            if not location:
+                print("Please enter a city name.")
+                continue
+
+            weather_data = get_weather_data(location)
+            if not weather_data or 'error' in weather_data:
+                print(f"Sorry, I couldn't find weather data for '{location}'. Please try another city.")
+                continue
+
+            create_temperature_visualisation(weather_data)
+            create_precipitation_visualisation(weather_data)
+
+        except ConnectionError:
+            print("It looks like there's a problem with your internet connection. Please check and try again.")
+        except Exception as e:
+            print(f"Oops! Something went wrong: {e}")
+            print("Please try again or contact support if the issue persists.")
+
+
+🧠 Key Error-Handling Features:
+City Not Found:
+
+If the city doesn’t return valid data, the app lets the user know and asks for a different input.
+
+User Exit:
+
+Gracefully ends the app when the user types 'exit'.
+
+Empty Input:
+
+Asks the user to enter something if the input is blank.
+
+Connection Issues:
+
+Handles internet-related errors specifically (if get_weather_data uses network calls).
+
+Unexpected Errors:
+
+Catches all other exceptions to avoid crashing and gives user-friendly feedback.
+
+🔍 Bonus Recommendations:
+Log errors to a file for debugging purposes.
+
+Add retry logic if an API call fails temporarily.
+
+Support fuzzy matching or suggest alternatives if city names are misspelled.
+
+Use a default location (e.g., user’s IP-based city) if nothing is entered.
+
+Let me know if you’d like help refining get_weather_data() or adding some of those extra features — I’d love to help! 🌟
+
+-------------
+
+Me:
+I was thinking of main in the script, but should I define main() and call this function later?
+
+-------------
+
+AI:
+Great question — yes, defining a main() function and calling it at the end of your script is a best practice in Python. It makes your code more organized, reusable, and easier to manage, especially as your program grows.
+
+✅ Why define and call main()?
+1. Cleaner structure – separates logic from execution.
+2. Easier testing – you can import the script in another module without running the app immediately.
+3. Python standard – it follows the common Python pattern.
+
+🧩 How to do it properly
+Here’s how you can define and call the main() function in a script:
+def main():
+    print("Hi I'm Weatherwise App!")
+    # rest of your weather app logic here...
+
+# This ensures the script only runs when executed directly
+if __name__ == '__main__':
+    main()
+
+🔐 What does if __name__ == '__main__': mean?
+When you run your script directly (e.g., python weather_app.py), the __name__ variable is set to '__main__', so main() runs.
+
+But if you import this script into another one (e.g., for testing or extension), main() won’t run automatically — which is what you want.
+
+TL;DR:
+✅ Yes, wrap your logic in a main() function
+✅ Call it using if __name__ == '__main__':
+🚀 This keeps your code clean, professional, and scalable
+
+Let me know if you want a full version of the updated script using this structure!
